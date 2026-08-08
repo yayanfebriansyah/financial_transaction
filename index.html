@@ -62,7 +62,26 @@ body{background:#f4f6f9;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif}.c
 <div class="row g-4 mb-4"><div class="col-md-6"><div class="card card-stat p-3 h-100"><h5>🔍 Filter Transaksi</h5><div class="row g-2">
 <div class="col-6"><label class="small text-muted">Periode</label><select id="filterPeriode" class="form-select form-select-sm" onchange="periode()"><option value="semua">Semua Waktu</option><option value="bulan_ini">Bulan Ini</option><option value="tahun_ini">Tahun Ini</option><option value="rentang">Rentang Tanggal</option></select></div>
 <div class="col-6"><label class="small text-muted">Jenis</label><select id="filterJenis" class="form-select form-select-sm" onchange="resetPage()"><option value="semua">Semua</option><option value="pemasukan">Pemasukan</option><option value="pengeluaran">Pengeluaran</option></select></div>
-<div class="col-6"><label class="small text-muted">Kategori</label><select id="filterKategori" class="form-select form-select-sm category-multi" multiple onchange="resetPage()"></select><small class="text-muted">Ctrl/Cmd + klik untuk memilih beberapa kategori</small></div>
+<!-- <div class="col-6"><label class="small text-muted">Kategori</label><select id="filterKategori" class="form-select form-select-sm category-multi" multiple onchange="resetPage()"></select><small class="text-muted">Ctrl/Cmd + klik untuk memilih beberapa kategori</small></div> -->
+<div class="col-6">
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="small text-muted mb-1">Kategori</label>
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary py-0 px-2"
+                onclick="resetCategoryFilter()">
+            Semua Kategori
+        </button>
+    </div>
+
+    <select id="filterKategori"
+            class="form-select form-select-sm category-multi"
+            multiple
+            onchange="resetPage()"></select>
+
+    <small class="text-muted">
+        Bisa memilih beberapa kategori. Klik "Semua Kategori" untuk membatalkan filter.
+    </small>
+</div>
 <div class="col-12"><label class="small text-muted">Cari Transaksi</label><input id="search" type="search" class="form-control form-control-sm" placeholder="Cari kategori atau keterangan..." oninput="resetPage()"></div><div class="col-6"></div><div id="boxStart" class="col-6 d-none"><label class="small text-muted">Tanggal Mulai</label><input id="start" type="date" class="form-control form-control-sm" onchange="resetPage()"></div>
 <div id="boxEnd" class="col-6 d-none"><label class="small text-muted">Tanggal Selesai</label><input id="end" type="date" class="form-control form-control-sm" onchange="resetPage()"></div>
 </div></div></div>
@@ -93,6 +112,15 @@ async function loadCategories(){try{const r=await fetch(API+'?action=categories'
 function kategoriForm(){kategori.innerHTML='';(categories[jenis.value]||[]).forEach(x=>{const o=document.createElement('option');o.value=o.textContent=x;kategori.appendChild(o)})}
 function editKategoriForm(){const old=editKategori.value;editKategori.innerHTML='';(categories[editJenis.value]||[]).forEach(x=>{const o=document.createElement('option');o.value=o.textContent=x;editKategori.appendChild(o)});if(old&&[...editKategori.options].some(o=>o.value===old))editKategori.value=old}
 function fillFilter(){const selected=[...filterKategori.selectedOptions].map(o=>o.value);filterKategori.innerHTML='';[...new Set([...data.map(x=>x.kategori),...categories.pemasukan,...categories.pengeluaran])].sort((a,b)=>a.localeCompare(b,'id')).forEach(x=>{const o=document.createElement('option');o.value=o.textContent=x;o.selected=selected.includes(x);filterKategori.appendChild(o)})}
+// tambahan
+function resetCategoryFilter(){
+    [...filterKategori.options].forEach(option => {
+        option.selected = false;
+    });
+
+    resetPage();
+}  
+
 async function addCategory(){const name=prompt('Masukkan nama kategori baru:');if(name===null)return;const nama=name.trim();if(!nama)return alert('Nama kategori wajib diisi.');if(nama.length>50)return alert('Nama kategori maksimal 50 karakter.');try{await post('add_category',{jenis:jenis.value,nama});await loadCategories();kategori.value=nama;alert('Kategori berhasil ditambahkan.')}catch(e){alert(e.message)}}
 function periode(){const r=filterPeriode.value==='rentang';boxStart.classList.toggle('d-none',!r);boxEnd.classList.toggle('d-none',!r);resetPage()}
 function resetPage(){page=1;render()}function rupiah(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0)}
